@@ -13,10 +13,11 @@ namespace AdvancedKBMControls
         public override string ID => "AdvancedKBMControls"; //Your mod ID (unique)
         public override string Name => "Advanced KB&M Controls"; //You mod name
         public override string Author => "cbethax"; //Your Username
-        public override string Version => "1.2.1"; //Version
+        public override string Version => "1.2.2"; //Version
         public override bool UseAssetsFolder => false;
 
         readonly Keybind disableSteerKey = new Keybind("DisableSteer", "Disable Steer", KeyCode.LeftControl);
+        readonly Keybind toggleMouseSteer = new Keybind("ToogleSteer", "Toggle Mouse Steer On/Off", KeyCode.LeftAlt);
         readonly Keybind toggleSticky = new Keybind("ToggleSticky", "Toggle Sticky Throttle/Brake", KeyCode.CapsLock);
 
         readonly Keybind[] throttleKeys = new Keybind[] {
@@ -265,6 +266,7 @@ namespace AdvancedKBMControls
             }
 
             Keybind.Add(this, disableSteerKey);
+            Keybind.Add(this, toggleMouseSteer);
             Keybind.Add(this, toggleSticky);
 
             for (int i = 0; i < throttleKeys.Length; i++)
@@ -394,6 +396,17 @@ namespace AdvancedKBMControls
                 float brakeInputNew = 0f;
                 float clutchInputNew = 0f;
 
+                if (toggleMouseSteer.GetKeybindDown())
+                {
+                    enableMouseSteer.Value = !(bool)enableMouseSteer.Value;
+                    if (!(bool)enableMouseSteer.GetValue())
+                    {
+                        mouseLookX.enabled = true;
+                        mouseLookY.enabled = true;
+                        crosshair.SetActive(true);
+                        isRotateModeActive = true;
+                    }
+                }
                 if ((bool)enableMouseSteer.GetValue())
                 {
                     if (disableSteerKey.GetKeybind() && !isRotateModeActive) // activate rotate mode
@@ -416,11 +429,7 @@ namespace AdvancedKBMControls
 
                         crosshair.SetActive(false);
                     }
-                }
-
-                if (!isRotateModeActive)
-                {
-                    if ((bool)enableMouseSteer.GetValue())
+                    if (!isRotateModeActive)
                     {
                         mouseLookX.enabled = false;
                         mouseLookY.enabled = false;
