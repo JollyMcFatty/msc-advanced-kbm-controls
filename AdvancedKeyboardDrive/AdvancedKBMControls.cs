@@ -13,7 +13,7 @@ namespace AdvancedKBMControls
         public override string ID => "AdvancedKBMControls"; //Your mod ID (unique)
         public override string Name => "Advanced KB&M Controls"; //You mod name
         public override string Author => "cbethax"; //Your Username
-        public override string Version => "1.2.2"; //Version
+        public override string Version => "1.2.3"; //Version
         public override bool UseAssetsFolder => false;
 
         readonly Keybind disableSteerKey = new Keybind("DisableSteer", "Disable Steer", KeyCode.LeftControl);
@@ -45,6 +45,7 @@ namespace AdvancedKBMControls
         };
 
         public static Settings enableGUI;
+        public static SettingsDropDownList defaultMouseSteer;
         public static Settings enableMouseSteer;
         public static Settings centerMouseOnEnable;
         public static Settings steeringSensitivity;
@@ -231,6 +232,7 @@ namespace AdvancedKBMControls
             Settings.AddCheckBox(this, enableGUI);
             Settings.AddCheckBox(this, keyboardHShifter);
             Settings.AddHeader(this, "Mouse Steering");
+            defaultMouseSteer = Settings.AddDropDownList(this, "defaultMouseSteer", "Default setting when entering drive mode", new string[] { "Enabled", "Disabled", "Previous" }, 2);
             Settings.AddCheckBox(this, enableMouseSteer);
             Settings.AddCheckBox(this, centerMouseOnEnable);
             Settings.AddSlider(this, steeringSensitivity, 1f, 100f);
@@ -319,6 +321,9 @@ namespace AdvancedKBMControls
 
                 isDriveModeActive = true;
 
+                if (defaultMouseSteer.GetSelectedItemIndex() == 0) { enableMouseSteer.Value = true; }
+                else if(defaultMouseSteer.GetSelectedItemIndex() == 1) { enableMouseSteer.Value = false; }
+
                 if ((bool)enableMouseSteer.GetValue())
                 {
                     mouseLookX.enabled = false;
@@ -398,14 +403,14 @@ namespace AdvancedKBMControls
 
                 if (toggleMouseSteer.GetKeybindDown())
                 {
-                    enableMouseSteer.Value = !(bool)enableMouseSteer.Value;
-                    if (!(bool)enableMouseSteer.GetValue())
+                    if ((bool)enableMouseSteer.GetValue())
                     {
                         mouseLookX.enabled = true;
                         mouseLookY.enabled = true;
                         crosshair.SetActive(true);
-                        isRotateModeActive = true;
                     }
+                    else { isRotateModeActive = true; }
+                    enableMouseSteer.Value = !(bool)enableMouseSteer.Value;
                 }
                 if ((bool)enableMouseSteer.GetValue())
                 {
