@@ -13,7 +13,7 @@ namespace AdvancedKBMControls
         public override string ID => "AdvancedKBMControls"; //Your mod ID (unique)
         public override string Name => "Advanced KB&M Controls"; //You mod name
         public override string Author => "cbethax"; //Your Username
-        public override string Version => "1.2.3"; //Version
+        public override string Version => "1.2.4"; //Version
         public override bool UseAssetsFolder => false;
 
         readonly Keybind disableSteerKey = new Keybind("DisableSteer", "Disable Steer", KeyCode.LeftControl);
@@ -47,6 +47,7 @@ namespace AdvancedKBMControls
         public static Settings enableGUI;
         public static SettingsDropDownList defaultMouseSteer;
         public static Settings enableMouseSteer;
+        public static Settings invertMouseSteer;
         public static Settings centerMouseOnEnable;
         public static Settings steeringSensitivity;
         public static Settings keyboardHShifter;
@@ -78,6 +79,7 @@ namespace AdvancedKBMControls
         public static bool isDriveModeActive = false;
         public static bool isRotateModeActive = false;
 
+        private static float sensitivity;
         public static float steerAngle;
         public static float throttleInput;
         public static float brakeInput;
@@ -112,8 +114,9 @@ namespace AdvancedKBMControls
         {
             enableGUI = new Settings("enableGUI", "Enable GUI", true, () => ApplySettings());
             enableMouseSteer = new Settings("enableMouseSteer", "Enable Mouse Steering", true, () => ApplySettings());
+            invertMouseSteer = new Settings("invertMouseSteer", "Invert Mouse Steering", false, () => ApplySensitivity());
             centerMouseOnEnable = new Settings("centerMouseOnEnable", "Reset Camera On Enable", true, () => ApplySettings());
-            steeringSensitivity = new Settings("steeringSensitivity_1.1.2", "Steering Sensitivity", 25f, () => ApplySettings());
+            steeringSensitivity = new Settings("steeringSensitivity_1.1.2", "Steering Sensitivity", 25f, () => ApplySensitivity());
             keyboardHShifter = new Settings("keyboardHShifter", "Keyboard H-Shifter", false, () => ApplySettings());
             enableAdvancedKeys = new Settings("enableAdvancedKeys", "Enable Advanced Throttle/Brake", true, () => ApplySettings());
             enableStickyKeys = new Settings("enableStickyKeys", "Enable Sticky Throttle/Brake", false, () => ApplySettings());
@@ -149,6 +152,8 @@ namespace AdvancedKBMControls
             
             mouseLookX = player.gameObject.GetComponent<MouseLook>();
             mouseLookY = fpsCameraParent.gameObject.GetComponent<MouseLook>();
+
+            ApplySensitivity();
 
             if (!ES2.Exists(saveFile))
             {
@@ -234,6 +239,7 @@ namespace AdvancedKBMControls
             Settings.AddHeader(this, "Mouse Steering");
             defaultMouseSteer = Settings.AddDropDownList(this, "defaultMouseSteer", "Default setting when entering drive mode", new string[] { "Enabled", "Disabled", "Previous" }, 2);
             Settings.AddCheckBox(this, enableMouseSteer);
+            Settings.AddCheckBox(this, invertMouseSteer);
             Settings.AddCheckBox(this, centerMouseOnEnable);
             Settings.AddSlider(this, steeringSensitivity, 1f, 100f);
 
@@ -412,6 +418,7 @@ namespace AdvancedKBMControls
                     else { isRotateModeActive = true; }
                     enableMouseSteer.Value = !(bool)enableMouseSteer.Value;
                 }
+
                 if ((bool)enableMouseSteer.GetValue())
                 {
                     if (disableSteerKey.GetKeybind() && !isRotateModeActive) // activate rotate mode
@@ -443,8 +450,6 @@ namespace AdvancedKBMControls
 
                         if (Mathf.Abs(mouseMoveX) > 0.01f)
                         {
-                            float sensitivity = float.Parse(steeringSensitivity.GetValue().ToString()) * 0.0005f;
-
                             steerAngle = Mathf.Clamp(steerAngle + mouseMoveX * sensitivity, -1f, 1f);
                         }
                     }
@@ -597,6 +602,13 @@ namespace AdvancedKBMControls
 
         void ApplySettings()
         {
+        }
+
+        private void ApplySensitivity()
+        {
+            float modifier = 0.0005f;
+            if ((bool)invertMouseSteer.GetValue()) { modifier = -modifier; }
+            sensitivity = float.Parse(steeringSensitivity.GetValue().ToString()) *  modifier;
         }
 
         void AddCurrentCar()
